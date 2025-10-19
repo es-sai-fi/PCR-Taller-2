@@ -1,0 +1,8 @@
+jobs = 3;
+tasks = 2;
+k = 2;
+weight_makespan = 1;
+weight_load_balancing = 1;
+d = [| 4, 2,
+     | 3, 3, 
+     | 2, 4 |];
