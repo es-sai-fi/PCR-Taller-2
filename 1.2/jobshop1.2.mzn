@@ -39,7 +39,7 @@ constraint forall(j in TASK) (
   )
 );
     
-% Worker usage glboal limit
+% Worker usage global limit
 constraint cumulative(
     [s[i, j] | i in JOB, j in TASK],
     [d[i, j] | i in JOB, j in TASK],
@@ -61,6 +61,27 @@ constraint forall(p in WORKER) (
 %constraint forall(p in WORKER) (
 %  load[p] <= ceil(mean_load)
 %);
+
+% ---- Redundant Constraints ----
+% Lower and upper bound for a worker's load
+constraint forall(p in WORKER) ( 0 <= load[p] /\ load[p] <= total );
+
+% End time should always be greater or equal to each task duration
+constraint forall(i in JOB, j in TASK) (
+  end >= s[i,j] + d[i,j]
+);
+
+% ---- Symmetry Breaking ----
+
+% Workers ordered by load (identical workers)
+constraint forall(p in 1..k-1) (
+  load[p] <= load[p+1]
+);
+
+% Jobs ordered by start time of first task (if jobs are identical)
+constraint forall(i in 1..jobs-1) (
+  s[i, 1] <= s[i+1, 1]
+);
 
 % ---- Solve ----
 %solve minimize end
