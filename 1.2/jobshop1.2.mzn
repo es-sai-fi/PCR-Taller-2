@@ -1,8 +1,8 @@
 include "cumulative.mzn";
 
 % ---- Parameters ----
-int: weight_makespan;                            % Weight given to makespan minimization  
-int: weight_load_balancing;                      % Weight given to load balancing
+float: weight_makespan;                          % Weight given to makespan minimization  
+float: weight_load_balancing;                    % Weight given to load balancing
 int: jobs;                                       % Number of jobs
 set of int: JOB = 1..jobs;
 int: tasks;                                      % Number of tasks per job
@@ -72,20 +72,29 @@ constraint forall(i in JOB, j in TASK) (
 );
 
 % ---- Symmetry Breaking ----
-
 % Workers ordered by load (identical workers)
-constraint forall(p in 1..k-1) (
-  load[p] <= load[p+1]
-);
+%constraint forall(p in 1..k-1) (
+%  load[p] <= load[p+1]
+%);
 
-% Jobs ordered by start time of first task (if jobs are identical)
-constraint forall(i in 1..jobs-1) (
-  s[i, 1] <= s[i+1, 1]
-);
+% Tasks ordered by start time (identical jobs)
+% constraint if forall(i in JOB, j in TASK where i < jobs) (
+%  forall(u in TASK) (d[i, u] = d[i+1, u])
+%) then
+%  forall(v in 1..jobs-1) (
+%    s[v, 1] <= s[v+1, 1]
+%  )
+%else
+%  true
+%endif;
 
 % ---- Solve ----
-%solve minimize end
-solve minimize end * weight_makespan + load_range * weight_load_balancing;
+solve :: int_search([s[i, j] | i in JOB, j in TASK] ++ [w[i, j] | i in JOB, j in TASK], first_fail, indomain_min, complete)
+%solve :: int_search([w[i, j] | i in JOB, j in TASK] ++ [s[i, j] | i in JOB, j in TASK], first_fail, indomain_min, complete)
+%solve :: int_search([w[i, j] | i in JOB, j in TASK] ++ [s[i, j] | i in JOB, j in TASK], dom_w_deg, indomain_min, complete)
+%solve :: int_search([s[i, j] | i in JOB, j in TASK] ++ [w[i, j] | i in JOB, j in TASK], dom_w_deg, indomain_min, complete)
+minimize ((end - total / k) / (total - total / k)) * weight_makespan 
+         + (load_range / total) * weight_load_balancing;
 
 % ---- Output ----
 output [
