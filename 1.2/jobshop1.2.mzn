@@ -88,6 +88,14 @@ constraint forall(i in JOB, j in TASK) (
 %  true
 %endif;
 
+% Tasks ordered by start time (identical jobs)
+constraint forall(i, j in JOB where i < j) (
+  let {
+    bool: identical = forall(u in TASK)(d[i, u] = d[j, u])
+  } in
+    identical -> forall(t in TASK)(s[i, t] <= s[j, t])
+);
+
 % ---- Solve ----
 solve :: int_search([s[i, j] | i in JOB, j in TASK] ++ [w[i, j] | i in JOB, j in TASK], first_fail, indomain_min, complete)
 %solve :: int_search([w[i, j] | i in JOB, j in TASK] ++ [s[i, j] | i in JOB, j in TASK], first_fail, indomain_min, complete)
